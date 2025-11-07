@@ -56,7 +56,7 @@ class ConfigNode:
         return cls(**d)
 
     def as_dict(self):
-        return attr.asdict(self)
+        return attr.asdict(self, filter=lambda a, v: a.metadata.get("config", True))
 
 
 @attr.s
@@ -107,8 +107,14 @@ def get_default_auto_fill_rules():
 class Credentials(ConfigNode):
     username = attr.ib()
 
+    __password = attr.ib(default=None, metadata={"config": False})
+    __totp = attr.ib(default=None, metadata={"config": False})
+    __keyring_enabled = attr.ib(default=True, metadata={"config": False})
+
     @property
     def password(self):
+        if not self.__keyring_enabled:
+            return self.__password if self.__password is not None else ""
         try:
             return keyring.get_password(APP_NAME, self.username)
         except keyring.errors.KeyringError:
@@ -117,13 +123,19 @@ class Credentials(ConfigNode):
 
     @password.setter
     def password(self, value):
+        if not self.__keyring_enabled:
+            self.__password = value
         try:
             keyring.set_password(APP_NAME, self.username, value)
         except keyring.errors.KeyringError:
             logger.info("Cannot save password to keyring.")
+        else:
+            self.__password = value
 
     @property
     def totp(self):
+        if not self.__keyring_enabled:
+            return self.__totp if self.__totp is not None else ""
         try:
             totpsecret = keyring.get_password(APP_NAME, "totp/" + self.username)
             return pyotp.TOTP(totpsecret).now() if totpsecret else None
@@ -133,10 +145,15 @@ class Credentials(ConfigNode):
 
     @totp.setter
     def totp(self, value):
+        if not self.__keyring_enabled:
+            self.__totp = value
         try:
             keyring.set_password(APP_NAME, "totp/" + self.username, value)
         except keyring.errors.KeyringError:
             logger.info("Cannot save totp secret to keyring.")
+
+    def enable_keyring(self, enable: bool = True) -> None:
+        self.__keyring_enabled = enable
 
 
 @attr.s

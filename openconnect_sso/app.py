@@ -113,6 +113,7 @@ async def _run(args, cfg):
         credentials = cfg.credentials
     elif args.user:
         credentials = Credentials(args.user)
+    credentials.enable_keyring(enable=not args.no_keyring)
 
     if credentials and not credentials.password:
         credentials.password = getpass.getpass(prompt=f"Password ({args.user}): ")

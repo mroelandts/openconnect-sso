@@ -115,6 +115,12 @@ def create_argparser():
     credentials_group.add_argument(
         "-u", "--user", help="Authenticate as the given user", default=None
     )
+    credentials_group.add_argument(
+        "--no-keyring",
+        help="Disable loading & saving password to system keyring",
+        action="store_true",
+        default=False,
+    )
     return parser
 
 

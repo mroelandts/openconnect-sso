@@ -116,12 +116,12 @@ async def _run(args, cfg):
     credentials.enable_keyring(enable=not args.no_keyring)
 
     if credentials and not credentials.password:
-        credentials.password = getpass.getpass(prompt=f"Password ({args.user}): ")
+        credentials.password = getpass.getpass(prompt=f"Password ({credentials.username}): ")
         cfg.credentials = credentials
 
     if credentials and not credentials.totp:
         credentials.totp = getpass.getpass(
-            prompt=f"TOTP secret (leave blank if not required) ({args.user}): "
+            prompt=f"TOTP secret (leave blank if not required) ({credentials.username}): "
         )
         cfg.credentials = credentials
 

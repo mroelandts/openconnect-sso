@@ -24,7 +24,9 @@ def load():
         return Config()
     with config_path.open() as config_file:
         try:
-            return Config.from_dict(toml.load(config_file))
+            user_config = Config.from_dict(toml.load(config_file))
+            logger.info(f"Loaded configuration from {config_path}")
+            return user_config
         except Exception:
             logger.error(
                 "Could not load configuration file, ignoring",
